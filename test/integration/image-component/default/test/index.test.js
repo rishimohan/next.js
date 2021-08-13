@@ -229,6 +229,28 @@ function runTests(mode) {
     }
   })
 
+  it('should not execute scripts inside svg image', async () => {
+    let browser
+    try {
+      browser = await webdriver(appPort, '/xss-svg')
+      await browser.eval(`document.getElementById("img").scrollIntoView()`)
+      expect(await browser.elementById('img').getAttribute('src')).toContain(
+        'xss.svg'
+      )
+      expect(await browser.elementById('msg').text()).toBe('safe')
+
+      browser = await webdriver(
+        appPort,
+        '/_next/image?url=%2Fxss.svg&w=256&q=75'
+      )
+      expect(await browser.elementById('msg').text()).toBe('safe')
+    } finally {
+      if (browser) {
+        await browser.close()
+      }
+    }
+  })
+
   it('should work when using flexbox', async () => {
     let browser
     try {
